@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search, MoreVertical, Phone, Video, Send, Bot, User, Check, CheckCheck, FileText, Calendar, HandIcon } from 'lucide-react';
+import { Search, MoreVertical, Phone, Video, Send, Bot, User, Check, FileText, Calendar, HandIcon } from 'lucide-react';
 import { useAutomationStore } from '../store/automationStore';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
-import { generateAIResponse, AIResponse } from '../services/gemini';
+import { generateAIResponse, type AIResponse } from '../services/gemini';
 
 export default function Inbox() {
   const { 
@@ -50,6 +50,7 @@ export default function Inbox() {
     
     // Add user message
     addMessage(activeContactId, {
+      contactId: activeContactId,
       text: userText,
       sender: 'user',
       status: 'sent'
@@ -94,6 +95,7 @@ export default function Inbox() {
       
       // Add AI response message
       addMessage(activeContactId, {
+        contactId: activeContactId,
         text: response.reply,
         sender: 'ai',
         status: 'delivered'
@@ -108,6 +110,7 @@ export default function Inbox() {
       console.error(error);
       setIsTyping(false);
       addMessage(activeContactId, {
+        contactId: activeContactId,
         text: "I'm currently experiencing technical difficulties. Let me connect you with a human agent.",
         sender: 'ai',
         status: 'delivered'
@@ -125,6 +128,7 @@ export default function Inbox() {
     setShowBooking(false);
     
     addMessage(activeContactId, {
+      contactId: activeContactId,
       text: "✓ Your AI VARSH demo is confirmed for tomorrow at 2:00 PM. We'll see you then!",
       sender: 'ai',
       status: 'delivered'

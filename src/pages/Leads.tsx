@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Plus, Search, Filter, MoreHorizontal, ArrowRight, Phone, Mail } from 'lucide-react';
 import { useAutomationStore } from '../store/automationStore';
-import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 
 const stages = ['NEW', 'CONTACTED', 'QUALIFIED', 'DEMO BOOKED', 'PROPOSAL', 'WON'];

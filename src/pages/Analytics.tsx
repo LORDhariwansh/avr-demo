@@ -1,4 +1,4 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 import { Download, Calendar as CalendarIcon, TrendingUp } from 'lucide-react';
 
 const volumeData = [
@@ -103,7 +103,7 @@ export default function Analytics() {
                   dataKey="value"
                   stroke="none"
                 >
-                  {intentData.map((entry, index) => (
+                  {intentData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>

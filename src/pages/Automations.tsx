@@ -1,4 +1,4 @@
-import { Play, Plus, Search, Settings, Filter, ArrowRight } from 'lucide-react';
+import { Play, Plus, Search, Settings, Filter } from 'lucide-react';
 
 const workflows = [
   { id: 1, name: 'Lead Qualification', status: 'Active', trigger: 'New Message', steps: 4 },

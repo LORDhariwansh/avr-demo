@@ -71,10 +71,7 @@ Analyze the user's message and respond with the required JSON structure.
     const interaction = await client.interactions.create({
       model: "gemini-3.8-flash",
       input: prompt,
-      config: {
-        system_instruction: systemInstruction,
-        // Enforcing JSON output using structured output might be better, but prompt engineering works fine for a demo.
-      }
+      system_instruction: systemInstruction,
     });
 
     const responseText = interaction.output_text || '{}';

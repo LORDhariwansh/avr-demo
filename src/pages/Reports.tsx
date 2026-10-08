@@ -13,7 +13,6 @@ export default function Reports() {
   const resolvedAI = Object.values(conversations).filter(c => c.status === 'resolved' || c.status === 'active').length;
   const totalLeads = Object.keys(leads).length;
   const totalBookings = Object.keys(appointments).length;
-  const humanHandoffs = Object.values(conversations).filter(c => c.status === 'handoff').length;
   const automationRate = totalConvos ? Math.round((resolvedAI / totalConvos) * 100) : 0;
   const timeSaved = (resolvedAI * 5) / 60; // 5 mins per conversation
 
