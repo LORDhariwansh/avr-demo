@@ -38,8 +38,8 @@ describe('Shared Chat Pipeline Tests', () => {
   // 1. Healthcare clinic-timings button returns its configured answer.
   it('1. Healthcare clinic-timings returns configured answer', async () => {
     renderSimulator();
-    // Assume Healthcare is selected by default
-    sendMessage('clinic timings');
+    // Click the button
+    fireEvent.click(screen.getByText('Clinic Timings'));
     
     await waitFor(() => {
       expect(screen.getByText(/Our clinic is open Mon-Sat/i)).toBeInTheDocument();
@@ -51,7 +51,7 @@ describe('Shared Chat Pipeline Tests', () => {
   // 2. Healthcare department button returns configured departments.
   it('2. Healthcare department returns configured departments', async () => {
     renderSimulator();
-    sendMessage('departments');
+    fireEvent.click(screen.getByText('Departments'));
     
     await waitFor(() => {
       expect(screen.getByText(/Dermatology, Cardiology, Pediatrics/i)).toBeInTheDocument();
@@ -110,7 +110,7 @@ describe('Shared Chat Pipeline Tests', () => {
     });
     
     // Now trigger an FAQ
-    sendMessage('clinic timings');
+    fireEvent.click(screen.getByText('Clinic Timings'));
     
     await waitFor(() => {
       expect(screen.getByText(/Our clinic is open Mon-Sat/i)).toBeInTheDocument();

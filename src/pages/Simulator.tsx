@@ -95,7 +95,7 @@ export default function Simulator({ industry, scenarioId, onBack, onIndustryChan
     }
   };
 
-  const handleSend = async (text: string, isScenarioInit = false) => {
+  const handleSend = async (text: string, isScenarioInit = false, isQuickReply = false) => {
     if (!text.trim()) return;
     
     addMessage({ text, sender: 'user' });
@@ -122,28 +122,30 @@ export default function Simulator({ industry, scenarioId, onBack, onIndustryChan
       return;
     }
 
-    // Check for industry-specific FAQ match before invoking Gemini
-    const industryFaqs = config.faqs || {};
-    const matchedKey = Object.keys(industryFaqs).find(key => lowerText.includes(key.toLowerCase()));
-    
-    if (matchedKey) {
-      if (import.meta.env.DEV) {
-         console.group("Diagnostics");
-         console.log(`Request ID: ${Math.random().toString(36).substring(7)}`);
-         console.log(`Industry ID: ${config.id}`);
-         console.log(`Automation ID: Demo`);
-         console.log(`Message type: ${text ? 'typed message' : 'quick-reply button'}`);
-         console.log(`Knowledge match found: true (${matchedKey})`);
-         console.log(`Gemini request attempted: skipped`);
-         console.log(`Selected action: NONE`);
-         console.log(`Final response intent: FAQ_ANSWER`);
-         console.groupEnd();
+    // Check for industry-specific FAQ match before invoking Gemini ONLY for quick replies
+    if (isQuickReply) {
+      const industryFaqs = config.faqs || {};
+      const matchedKey = Object.keys(industryFaqs).find(key => lowerText.includes(key.toLowerCase()));
+      
+      if (matchedKey) {
+        if (import.meta.env.DEV) {
+           console.group("Diagnostics");
+           console.log(`Request ID: ${Math.random().toString(36).substring(7)}`);
+           console.log(`Industry ID: ${config.id}`);
+           console.log(`Automation ID: Demo`);
+           console.log(`Message type: ${text ? 'typed message' : 'quick-reply button'}`);
+           console.log(`Knowledge match found: true (${matchedKey})`);
+           console.log(`Gemini request attempted: skipped`);
+           console.log(`Selected action: NONE`);
+           console.log(`Final response intent: FAQ_ANSWER`);
+           console.groupEnd();
+        }
+        const answer = industryFaqs[matchedKey];
+        setIsTyping(false);
+        addMessage({ text: answer, sender: 'ai' });
+        addLog(`System: Served FAQ locally for "${matchedKey}".`);
+        return;
       }
-      const answer = industryFaqs[matchedKey];
-      setIsTyping(false);
-      addMessage({ text: answer, sender: 'ai' });
-      addLog(`System: Served FAQ locally for "${matchedKey}".`);
-      return;
     }
 
     // Capture current messages snapshot for the AI (including the one just added)
@@ -363,7 +365,7 @@ export default function Simulator({ industry, scenarioId, onBack, onIndustryChan
                         {msg.options.map(opt => (
                           <button 
                             key={opt}
-                            onClick={() => handleSend(opt)}
+                            onClick={() => handleSend(opt, false, true)}
                             className="bg-indigo-50 border border-indigo-100 text-indigo-700 py-2 px-4 rounded-xl text-sm font-semibold hover:bg-indigo-600 hover:text-white transition-all text-left shadow-sm hover:shadow-md"
                           >
                             {opt}
