@@ -122,6 +122,24 @@ export default function Simulator({ industry, scenarioId, onBack, onIndustryChan
       return;
     }
 
+    // Check for industry-specific FAQ match before invoking Gemini
+    const faqAnswers: Record<string, Record<string, string>> = {
+      Healthcare: {
+        "clinic timings": "Our clinic is open Mon‑Sat from 9:00 AM to 8:00 PM. Sunday is closed.",
+        "consultation fees": "Consultation fees start from ₹500 depending on the department."
+      },
+      // Add other industries as needed
+    };
+    const industryFaqs = faqAnswers[config.id] || {};
+    const matchedKey = Object.keys(industryFaqs).find(key => lowerText.includes(key));
+    if (matchedKey) {
+      const answer = industryFaqs[matchedKey];
+      setIsTyping(false);
+      addMessage({ text: answer, sender: 'ai' });
+      addLog(`System: Served FAQ locally for "${matchedKey}".`);
+      return;
+    }
+
     // Capture current messages snapshot for the AI (including the one just added)
     const snapshot = [...messages, { id: Math.random().toString(), timestamp: new Date(), text, sender: 'user' as const }];
 

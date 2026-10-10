@@ -79,23 +79,42 @@ CRITICAL INSTRUCTIONS FOR BOOKING AND RESCHEDULING:
       }
     });
 
-    const resultText = response.text;
+    // Extract generated JSON from the Gemini SDK response.
+    const resultText = response?.response?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (resultText) {
-      const parsed = JSON.parse(resultText);
-      return parsed;
+      try {
+        const parsed = JSON.parse(resultText);
+        return parsed;
+      } catch (e) {
+        console.error("Failed to parse Gemini JSON response:", e);
+        // fall through to error handling below
+      }
     }
     
-    throw new Error("No response text");
-  } catch (error) {
-    console.error("Gemini API Error:", error);
-    return {
-      reply: "I'm experiencing technical difficulties right now. Let me connect you with a human agent.",
+    // If no response text, return graceful fallback preserving state
+    const fallbackReply = {
+      reply: "I'm having trouble generating a response right now. Your existing booking details are preserved. Would you like to try again?",
       intent: "ERROR",
       industry: config.id,
-      action: "HANDOFF",
+      action: "NONE",
       entities: {},
-      suggestedReplies: [],
-      requiresHuman: true
+      suggestedReplies: config.quickReplies.slice(0, 3),
+      requiresHuman: false,
+      nextState: conversationState
+    };
+    return fallbackReply;
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    // Return generic error fallback without handoff
+    return {
+      reply: "I'm having trouble generating a response right now. Your existing booking details are preserved. Would you like to try again?",
+      intent: "ERROR",
+      industry: config.id,
+      action: "NONE",
+      entities: {},
+      suggestedReplies: config.quickReplies.slice(0, 3),
+      requiresHuman: false,
+      nextState: conversationState
     };
   }
 }
