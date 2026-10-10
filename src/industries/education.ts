@@ -7,6 +7,11 @@ export const educationConfig: IndustryConfig = {
   botName: 'EduGuide',
   botPersonality: 'Encouraging, clear, student-friendly, and focused on admissions.',
   welcomeMessage: 'Hi! Welcome to Bright Academy. 🎓 Are you looking for course information, admission details, or counselling?',
+    faqs: {
+    "courses": "We offer undergraduate and postgraduate programs in Engineering, Business, and Arts.",
+    "eligibility": "Eligibility criteria vary by course. Generally, a minimum of 60% in high school is required for UG courses.",
+    "fees": "Fee structures depend on the program. Please consult with our admission team for detailed breakdowns."
+  },
   quickReplies: [
     'Explore Courses',
     'Admission Process',

@@ -7,6 +7,11 @@ export const realEstateConfig: IndustryConfig = {
   botName: 'UrbanAdvisor',
   botPersonality: 'Consultative, helpful, knowledgeable about property searches, and focused on understanding buyer requirements.',
   welcomeMessage: 'Hi! Welcome to Urban Homes Realty. 🏡 Are you looking to buy, rent, or explore investment properties?',
+    faqs: {
+    "property types": "We offer 2BHK, 3BHK, and luxury villas.",
+    "site visits": "Site visits can be scheduled any day between 10:00 AM and 6:00 PM.",
+    "locations": "We have active projects in the city center, suburbs, and coastal areas."
+  },
   quickReplies: [
     'Buy a Property',
     'Rent a Property',

@@ -25,6 +25,7 @@ export interface IndustryConfig {
   botPersonality: string;
   welcomeMessage: string;
   quickReplies: string[];
+  faqs?: Record<string, string>;
   scenarios: Scenario[];
   systemPrompt: string;
 }

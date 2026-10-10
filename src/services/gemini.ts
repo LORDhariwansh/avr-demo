@@ -1,5 +1,5 @@
-
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
+import type { Schema } from '@google/genai';
 import type { IndustryConfig, Message, ConversationState, BookingData } from '../types';
 
 export async function generateAIResponse(
@@ -36,7 +36,20 @@ export async function generateAIResponse(
       parts: [{ text: m.text }]
     }));
 
-// Response schema removed; Gemini will return plain text.
+    const responseSchema: Schema = {
+      type: Type.OBJECT,
+      properties: {
+        reply: { type: Type.STRING, description: "The customer-facing message" },
+        intent: { type: Type.STRING, description: "Customer's intent (e.g. ACKNOWLEDGEMENT, QUESTION, BOOKING, etc)" },
+        industry: { type: Type.STRING, description: "The industry string" },
+        action: { type: Type.STRING, description: "Action to trigger", enum: ["NONE", "SHOW_CALENDAR", "SHOW_OPTIONS", "LEAD_CAPTURED", "HANDOFF", "START_BOOKING"] },
+        entities: { type: Type.OBJECT, description: "Extracted entities like name, date, etc." },
+        suggestedReplies: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Suggested quick replies for the user" },
+        requiresHuman: { type: Type.BOOLEAN, description: "True if handoff to human is explicitly needed. Do NOT set to true for simple acknowledgements." },
+        nextState: { type: Type.STRING, description: "The next conversation state", enum: ['idle', 'answering_faq', 'collecting_lead', 'collecting_booking_details', 'selecting_date', 'selecting_time', 'booking_pending', 'booking_confirmed', 'sending_confirmation', 'awaiting_human', 'human_handoff', 'completed'] }
+      },
+      required: ["reply", "intent", "industry", "action", "suggestedReplies", "requiresHuman", "nextState"]
+    };
 
     const stateContext = `
 CURRENT CONVERSATION STATE: ${conversationState}
@@ -61,6 +74,8 @@ CRITICAL INSTRUCTIONS FOR BOOKING AND RESCHEDULING:
       config: {
         systemInstruction: config.systemPrompt + "\n" + stateContext,
         temperature: 0.2,
+        responseMimeType: "application/json",
+        responseSchema: responseSchema,
       },
     });
 

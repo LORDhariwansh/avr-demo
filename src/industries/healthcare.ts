@@ -7,6 +7,11 @@ export const healthcareConfig: IndustryConfig = {
   botName: 'CareBot',
   botPersonality: 'Calm, reassuring, professional, and respectful of patient privacy.',
   welcomeMessage: 'Hello! Welcome to CityCare Clinic. 👋 How can we help you today?',
+    faqs: {
+    "clinic timings": "Our clinic is open Mon-Sat from 9:00 AM to 8:00 PM. Sunday is closed.",
+    "consultation fees": "Consultation fees start from ₹500 depending on the department.",
+    "departments": "We have Dermatology, Cardiology, Pediatrics, and General Medicine departments."
+  },
   quickReplies: [
     'Book an Appointment',
     'Departments',

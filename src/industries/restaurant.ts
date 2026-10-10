@@ -7,6 +7,11 @@ export const restaurantConfig: IndustryConfig = {
   botName: 'SpiceBot',
   botPersonality: 'Friendly, quick, and focused on dining arrangements.',
   welcomeMessage: 'Hi! Welcome to Spice Garden. 🍽️ Would you like to explore our menu or reserve a table?',
+    faqs: {
+    "menu": "We serve authentic Italian cuisine. Vegetarian and vegan options are available.",
+    "timings": "We are open for lunch (12 PM - 3 PM) and dinner (7 PM - 11 PM).",
+    "reservations": "Table reservations can be made for groups of up to 20 people."
+  },
   quickReplies: [
     'View Menu',
     'Reserve a Table',

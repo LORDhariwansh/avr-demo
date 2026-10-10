@@ -7,6 +7,11 @@ export const automotiveConfig: IndustryConfig = {
   botName: 'DriveBot',
   botPersonality: 'Knowledgeable, professional, and service-oriented.',
   welcomeMessage: 'Welcome to DrivePoint Auto. Are you exploring a new vehicle or looking for vehicle servicing?',
+    faqs: {
+    "showroom timings": "Our showroom is open from 9:00 AM to 8:00 PM all days.",
+    "vehicle models": "We offer the latest Sedans, SUVs, and Electric Vehicles.",
+    "servicing": "Yes, we have a fully equipped service center. You can book an appointment here."
+  },
   quickReplies: [
     'Explore Vehicles',
     'Compare Models',

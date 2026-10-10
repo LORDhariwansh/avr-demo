@@ -7,6 +7,11 @@ export const retailConfig: IndustryConfig = {
   botName: 'NovaBot',
   botPersonality: 'Friendly, product-oriented, and concise.',
   welcomeMessage: 'Hi! Welcome to Nova Lifestyle Store. 🛍️ Looking for something specific today?',
+    faqs: {
+    "return policy": "We offer a 30-day no-questions-asked return policy for unused items.",
+    "shipping": "Standard shipping takes 3-5 business days. Express shipping is available.",
+    "sizes": "Our clothing is available in sizes XS through XXL."
+  },
   quickReplies: [
     'Browse Products',
     'Find My Size',

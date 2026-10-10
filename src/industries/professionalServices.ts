@@ -7,6 +7,11 @@ export const professionalServicesConfig: IndustryConfig = {
   botName: 'ApexAdvisor',
   botPersonality: 'Professional, consultative, and focused on understanding business needs.',
   welcomeMessage: 'Welcome to Apex Business Consulting. What business challenge can we help you with?',
+    faqs: {
+    "consultation": "We offer initial 30-minute free consultations to understand your project.",
+    "services": "We provide legal, financial, and strategic business consulting.",
+    "pricing": "Our projects are billed hourly or on a fixed-bid basis depending on the scope."
+  },
   quickReplies: [
     'Book a Consultation',
     'Explore Services',

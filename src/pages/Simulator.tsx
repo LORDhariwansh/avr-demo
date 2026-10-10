@@ -123,16 +123,22 @@ export default function Simulator({ industry, scenarioId, onBack, onIndustryChan
     }
 
     // Check for industry-specific FAQ match before invoking Gemini
-    const faqAnswers: Record<string, Record<string, string>> = {
-      Healthcare: {
-        "clinic timings": "Our clinic is open Mon‑Sat from 9:00 AM to 8:00 PM. Sunday is closed.",
-        "consultation fees": "Consultation fees start from ₹500 depending on the department."
-      },
-      // Add other industries as needed
-    };
-    const industryFaqs = faqAnswers[config.id] || {};
-    const matchedKey = Object.keys(industryFaqs).find(key => lowerText.includes(key));
+    const industryFaqs = config.faqs || {};
+    const matchedKey = Object.keys(industryFaqs).find(key => lowerText.includes(key.toLowerCase()));
+    
     if (matchedKey) {
+      if (import.meta.env.DEV) {
+         console.group("Diagnostics");
+         console.log(`Request ID: ${Math.random().toString(36).substring(7)}`);
+         console.log(`Industry ID: ${config.id}`);
+         console.log(`Automation ID: Demo`);
+         console.log(`Message type: ${text ? 'typed message' : 'quick-reply button'}`);
+         console.log(`Knowledge match found: true (${matchedKey})`);
+         console.log(`Gemini request attempted: skipped`);
+         console.log(`Selected action: NONE`);
+         console.log(`Final response intent: FAQ_ANSWER`);
+         console.groupEnd();
+      }
       const answer = industryFaqs[matchedKey];
       setIsTyping(false);
       addMessage({ text: answer, sender: 'ai' });
@@ -147,6 +153,20 @@ export default function Simulator({ industry, scenarioId, onBack, onIndustryChan
       const responseData = await generateAIResponse(snapshot, config, conversationState, bookingData);
       
       setIsTyping(false);
+
+      if (import.meta.env.DEV) {
+         console.group("Diagnostics");
+         console.log(`Request ID: ${Math.random().toString(36).substring(7)}`);
+         console.log(`Industry ID: ${config.id}`);
+         console.log(`Automation ID: Demo`);
+         console.log(`Message type: ${text ? 'typed message' : 'quick-reply button'}`);
+         console.log(`Knowledge match found: false`);
+         console.log(`Gemini request attempted: true`);
+         console.log(`Response parsing success: ${responseData.intent !== 'ERROR'}`);
+         console.log(`Selected action: ${responseData.action}`);
+         console.log(`Final response intent: ${responseData.intent}`);
+         console.groupEnd();
+      }
 
       // Extract entities to bookingData
       if (responseData.entities) {
@@ -184,6 +204,14 @@ export default function Simulator({ industry, scenarioId, onBack, onIndustryChan
       }
     } catch (e) {
       setIsTyping(false);
+      
+      if (import.meta.env.DEV) {
+         console.group("Diagnostics (Error)");
+         console.log(`Industry ID: ${config.id}`);
+         console.log(`Gemini HTTP/API error or parsing failure:`, e);
+         console.groupEnd();
+      }
+
       console.error(e);
       addMessage({ text: "I'm having trouble generating a response right now. Your existing booking details are preserved. Would you like to try again?", sender: 'system' });
     }

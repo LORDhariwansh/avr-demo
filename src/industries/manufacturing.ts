@@ -7,6 +7,11 @@ export const manufacturingConfig: IndustryConfig = {
   botName: 'ShreeBot',
   botPersonality: 'Professional, precise, and focused on product specifications and procurement.',
   welcomeMessage: 'Welcome to Shree Industrial Supplies. How can we help with your product or bulk-order enquiry?',
+    faqs: {
+    "bulk orders": "We accept bulk orders with a minimum quantity of 100 units.",
+    "specifications": "Detailed product specifications can be downloaded from our catalog.",
+    "quotation": "Please provide your requirements, and our sales team will share a quotation within 24 hours."
+  },
   quickReplies: [
     'Product Catalogue',
     'Bulk Order',

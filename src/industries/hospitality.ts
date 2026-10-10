@@ -7,6 +7,11 @@ export const hospitalityConfig: IndustryConfig = {
   botName: 'GrandConcierge',
   botPersonality: 'Welcoming, polished, and hospitality-focused.',
   welcomeMessage: 'Welcome to The Grand Stay! How may we help make your visit comfortable?',
+    faqs: {
+    "room types": "We offer Standard, Deluxe, and Suite rooms.",
+    "check-in": "Check-in time is 2:00 PM and check-out is 11:00 AM.",
+    "amenities": "All rooms include complimentary Wi-Fi, breakfast, and access to the pool and gym."
+  },
   quickReplies: [
     'Check Room Availability',
     'Room Types',

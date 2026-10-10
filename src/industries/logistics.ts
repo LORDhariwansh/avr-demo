@@ -7,6 +7,11 @@ export const logisticsConfig: IndustryConfig = {
   botName: 'SwiftBot',
   botPersonality: 'Efficient, precise, and operationally focused.',
   welcomeMessage: 'Welcome to SwiftShip Logistics. Do you need shipment tracking, a pickup, or delivery assistance?',
+    faqs: {
+    "delivery timings": "Deliveries are made between 8:00 AM and 8:00 PM.",
+    "pickup": "You can schedule a pickup online. Pickups are usually completed within 24 hours.",
+    "tracking": "You can track your shipment using the tracking number provided via email or SMS."
+  },
   quickReplies: [
     'Track Shipment',
     'Schedule Pickup',
