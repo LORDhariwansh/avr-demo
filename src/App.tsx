@@ -1,23 +1,24 @@
 import { useState } from 'react';
 import Landing from './pages/Landing';
 import Simulator from './pages/Simulator';
-import type { UseCase, Industry } from './types';
+import type { Industry } from './types';
 
 function App() {
-  const [selectedUseCase, setSelectedUseCase] = useState<UseCase | null>(null);
-  const [selectedIndustry, setSelectedIndustry] = useState<Industry>('Manufacturing');
+  const [selectedIndustry, setSelectedIndustry] = useState<Industry>('Healthcare');
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
 
-  const handleSelect = (useCase: UseCase, industry: Industry) => {
-    setSelectedUseCase(useCase);
+  const handleSelect = (industry: Industry, scenarioId: string) => {
     setSelectedIndustry(industry);
+    setSelectedScenarioId(scenarioId);
   };
 
-  if (selectedUseCase) {
+  if (selectedScenarioId) {
     return (
       <Simulator 
-        useCase={selectedUseCase} 
         industry={selectedIndustry} 
-        onBack={() => setSelectedUseCase(null)} 
+        scenarioId={selectedScenarioId}
+        onBack={() => setSelectedScenarioId(null)} 
+        onIndustryChange={(newIndustry) => setSelectedIndustry(newIndustry)}
       />
     );
   }

@@ -1,28 +1,40 @@
 export type Industry = 
-  | 'Manufacturing' 
-  | 'Real Estate' 
-  | 'Healthcare' 
-  | 'Education' 
-  | 'Retail' 
-  | 'Services';
+  | 'Healthcare'
+  | 'Real Estate'
+  | 'Education'
+  | 'Manufacturing'
+  | 'Retail & E-commerce'
+  | 'Hospitality'
+  | 'Restaurants'
+  | 'Automotive'
+  | 'Professional Services'
+  | 'Logistics';
 
-export type UseCase = 
-  | 'support'
-  | 'faq'
-  | 'booking'
-  | 'lead'
-  | 'enquiry'
-  | 'handoff'
-  | 'followup'
-  | 'sales'
-  | 'full';
+export interface Scenario {
+  id: string;
+  title: string;
+  description: string;
+  initialMessage: string;
+}
+
+export interface IndustryConfig {
+  id: Industry;
+  businessName: string;
+  description: string;
+  botName: string;
+  botPersonality: string;
+  welcomeMessage: string;
+  quickReplies: string[];
+  scenarios: Scenario[];
+  systemPrompt: string;
+}
 
 export interface Message {
   id: string;
   text: string;
   sender: 'user' | 'ai' | 'system';
   timestamp: Date;
-  action?: 'SHOW_CALENDAR' | 'LEAD_CAPTURED' | 'HANDOFF' | 'SHOW_OPTIONS';
+  action?: 'NONE' | 'SHOW_CALENDAR' | 'LEAD_CAPTURED' | 'HANDOFF' | 'SHOW_OPTIONS' | 'START_BOOKING';
   options?: string[];
   metadata?: any;
 }
