@@ -7,7 +7,16 @@ import * as geminiService from './services/gemini';
 
 // Mock the AI service
 vi.mock('./services/gemini', () => ({
-  generateAIResponse: vi.fn()
+  generateAIResponse: vi.fn().mockResolvedValue({
+    reply: 'Test response',
+    intent: 'UNKNOWN',
+    industry: 'Healthcare',
+    action: 'NONE',
+    entities: {},
+    suggestedReplies: [],
+    requiresHuman: false,
+    nextState: 'idle'
+  })
 }));
 
 describe('Industry Differences Automation Tests', () => {
