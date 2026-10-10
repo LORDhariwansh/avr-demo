@@ -3,6 +3,7 @@ import '@testing-library/jest-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import Simulator from './pages/Simulator';
 import { industriesConfig } from './industries';
+import * as geminiService from './services/gemini';
 
 // Mock the AI service
 vi.mock('./services/gemini', () => ({
@@ -116,6 +117,28 @@ describe('Simulator Component Behavior', () => {
     // New scenario message is sent automatically
     await waitFor(() => {
       expect(screen.getByText('I need a 2 BHK in Raipur.')).toBeTruthy();
+    });
+  });
+
+  it('Test G - Gemini API failure', async () => {
+    // Force gemini to throw error
+    vi.mocked(geminiService.generateAIResponse).mockRejectedValueOnce(new Error('Simulated Gemini Failure'));
+    
+    render(
+      <Simulator 
+        industry="Healthcare" 
+        scenarioId="book_dermatology" 
+        onBack={onBackMock} 
+        onIndustryChange={onIndustryChangeMock} 
+      />
+    );
+    
+    await waitFor(() => {
+      expect(screen.getByText('I want to see a skin doctor.')).toBeTruthy();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("I'm having trouble generating a response right now. Your existing booking details are preserved. Would you like to try again?")).toBeTruthy();
     });
   });
 });

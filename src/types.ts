@@ -29,6 +29,28 @@ export interface IndustryConfig {
   systemPrompt: string;
 }
 
+export type ConversationState = 
+  | 'idle'
+  | 'answering_faq'
+  | 'collecting_lead'
+  | 'collecting_booking_details'
+  | 'selecting_date'
+  | 'selecting_time'
+  | 'booking_pending'
+  | 'booking_confirmed'
+  | 'sending_confirmation'
+  | 'awaiting_human'
+  | 'human_handoff'
+  | 'completed';
+
+export interface BookingData {
+  date?: string;
+  time?: string;
+  name?: string;
+  company?: string;
+  email?: string;
+}
+
 export interface Message {
   id: string;
   text: string;

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, CheckCheck, CheckCircle2, Calendar as CalendarIcon, FileText, Mail } from 'lucide-react';
-import type { Industry, Message, AutomationLog } from '../types';
+import type { Industry, Message, AutomationLog, BookingData, ConversationState } from '../types';
 import { generateAIResponse } from '../services/gemini';
 import { createCalendarEvent, sendEmail } from '../services/google';
 import { generateBookingPDF } from '../services/pdf';
@@ -28,15 +28,8 @@ export default function Simulator({ industry, scenarioId, onBack, onIndustryChan
   const [isTyping, setIsTyping] = useState(false);
   const [activeNodes, setActiveNodes] = useState<string[]>(['AI Chatbot']);
   
-  // Booking Flow State
-  const [bookingState, setBookingState] = useState<{
-    date?: string;
-    time?: string;
-    name?: string;
-    company?: string;
-    email?: string;
-    step: 'none' | 'date' | 'time' | 'name' | 'company' | 'email' | 'done';
-  }>({ step: 'none' });
+  const [bookingData, setBookingData] = useState<BookingData>({});
+  const [conversationState, setConversationState] = useState<ConversationState>('idle');
 
   const [googleConnected, setGoogleConnected] = useState(false);
   
@@ -47,7 +40,8 @@ export default function Simulator({ industry, scenarioId, onBack, onIndustryChan
     // Reset state on industry/scenario change
     setMessages([]);
     setLogs([]);
-    setBookingState({ step: 'none' });
+    setBookingData({});
+    setConversationState('idle');
     setActiveNodes(['AI Chatbot']);
 
     const scenario = config.scenarios.find(s => s.id === scenarioId) || config.scenarios[0];
@@ -86,7 +80,7 @@ export default function Simulator({ industry, scenarioId, onBack, onIndustryChan
     if (action === 'SHOW_CALENDAR') {
       setActiveNodes(prev => [...new Set([...prev, 'Calendar App'])]);
       addLog("System: Triggered calendar widget via webhook");
-      setBookingState({ step: 'date' });
+      setConversationState('selecting_date');
     }
     else if (action === 'LEAD_CAPTURED') {
       setActiveNodes(prev => [...new Set([...prev, 'CRM System'])]);
@@ -104,25 +98,54 @@ export default function Simulator({ industry, scenarioId, onBack, onIndustryChan
   const handleSend = async (text: string, isScenarioInit = false) => {
     if (!text.trim()) return;
     
-    if (!isScenarioInit) {
-      addMessage({ text, sender: 'user' });
-    } else {
-      // If it's the automated scenario initial message
-      addMessage({ text, sender: 'user' });
-    }
+    addMessage({ text, sender: 'user' });
     
     setInput('');
     setIsTyping(true);
     addLog(`Received user message: "${text}"`);
     setActiveNodes(['AI Chatbot']);
     
+    const lowerText = text.trim().toLowerCase();
+    const ackWords = ["okay", "ok", "thanks", "thank you", "great", "perfect", "got it", "cool", "done", "understood"];
+    
+    if (!isScenarioInit && ackWords.includes(lowerText)) {
+      setIsTyping(false);
+      let replyText = "You're welcome! Let me know if you need anything else.";
+      if (conversationState === 'booking_confirmed') {
+        replyText = "You're all set! Your booking details are available above. Let me know if you'd like help with anything else.";
+      } else if (conversationState === 'selecting_date' || conversationState === 'selecting_time' || conversationState === 'collecting_lead' || conversationState === 'collecting_booking_details') {
+        replyText = "Could you please provide the requested information to proceed?";
+      }
+
+      addMessage({ text: replyText, sender: 'ai' });
+      addLog("System: Handled acknowledgement locally based on state.");
+      return;
+    }
+
     // Capture current messages snapshot for the AI (including the one just added)
     const snapshot = [...messages, { id: Math.random().toString(), timestamp: new Date(), text, sender: 'user' as const }];
 
     try {
-      const responseData = await generateAIResponse(snapshot, text, config);
+      const responseData = await generateAIResponse(snapshot, config, conversationState, bookingData);
       
       setIsTyping(false);
+
+      // Extract entities to bookingData
+      if (responseData.entities) {
+         setBookingData((prev: BookingData) => ({ ...prev, ...responseData.entities }));
+      }
+
+      // Email validation
+      if (responseData.entities && responseData.entities.email) {
+         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+         if (!emailRegex.test(responseData.entities.email)) {
+            // Revert state change and ask again
+            addMessage({ text: "That doesn't look like a valid email address. Could you please share your email, for example name@example.com?", sender: 'ai' });
+            return;
+         }
+      }
+
+      setConversationState(responseData.nextState);
       
       const action = responseData.action !== 'NONE' ? responseData.action : undefined;
       const options = responseData.suggestedReplies && responseData.suggestedReplies.length > 0 
@@ -144,44 +167,66 @@ export default function Simulator({ industry, scenarioId, onBack, onIndustryChan
     } catch (e) {
       setIsTyping(false);
       console.error(e);
-      addMessage({ text: "Sorry, an error occurred while processing.", sender: 'system' });
+      addMessage({ text: "I'm having trouble generating a response right now. Your existing booking details are preserved. Would you like to try again?", sender: 'system' });
     }
   };
 
   const handleBookingSubmit = async () => {
-    if (bookingState.step !== 'done') return;
+    if (conversationState !== 'booking_pending') return;
     
     addLog("Booking complete. Generating PDF invoice...");
     setActiveNodes(prev => [...new Set([...prev, 'PDF Generator'])]);
     
-    const doc = await generateBookingPDF({
-      customerName: bookingState.name || 'Customer',
-      companyName: bookingState.company || 'N/A',
-      email: bookingState.email || 'customer@example.com',
-      date: bookingState.date || 'TBD',
-      time: bookingState.time || 'TBD',
-      reference: 'REF-' + Math.floor(Math.random() * 10000)
-    });
-    const pdfUrl = doc.output('bloburl').toString();
-
-    addMessage({
-      text: "Booking confirmed! Here is your confirmation document.",
-      sender: 'ai',
-      metadata: { file: pdfUrl, fileName: 'Booking_Confirmation.pdf' }
-    });
-
-    if (googleConnected) {
-      setActiveNodes(prev => [...new Set([...prev, 'Google Calendar', 'Gmail'])]);
-      addLog("Syncing with Google Calendar...");
-      await createCalendarEvent('simulated-token', {
-        title: 'Meeting with ' + bookingState.name,
-        date: bookingState.date!,
-        time: bookingState.time!
+    try {
+      const doc = await generateBookingPDF({
+        customerName: bookingData.name || 'Customer',
+        companyName: bookingData.company || 'N/A',
+        email: bookingData.email || 'customer@example.com',
+        date: bookingData.date || 'TBD',
+        time: bookingData.time || 'TBD',
+        reference: 'REF-' + Math.floor(Math.random() * 10000)
       });
-      
-      addLog("Sending confirmation email...");
-      await sendEmail('simulated-token', bookingState.email || 'customer@example.com', 'Booking Confirmation', 'Your booking is confirmed.', pdfUrl);
-      addLog("Google Workspace sync complete.");
+      const pdfUrl = doc.output('bloburl').toString();
+
+      addMessage({
+        text: "Booking confirmed! Here is your confirmation document.",
+        sender: 'ai',
+        metadata: { file: pdfUrl, fileName: 'Booking_Confirmation.pdf' }
+      });
+      addLog("PDF generated successfully.");
+
+      setConversationState('booking_confirmed');
+
+      if (googleConnected) {
+        setActiveNodes(prev => [...new Set([...prev, 'Google Calendar', 'Gmail'])]);
+        addLog("Syncing with Google Calendar...");
+        const calResult = await createCalendarEvent('simulated-token', {
+          title: 'Meeting with ' + bookingData.name,
+          date: bookingData.date!,
+          time: bookingData.time!
+        });
+        
+        if (calResult) {
+          addLog("Calendar event created successfully.");
+        }
+        
+        addLog("Sending confirmation email...");
+        if (!bookingData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(bookingData.email)) {
+          addLog("Error: Invalid email address. Email not sent.");
+        } else {
+          await sendEmail('simulated-token', bookingData.email, 'Booking Confirmation', 'Your booking is confirmed.', pdfUrl);
+          addLog("Email sent successfully.");
+        }
+        addLog("Google Workspace sync complete.");
+      } else {
+        addLog("Your demo booking has been recorded in the simulator. Calendar and email actions are simulated.");
+        addMessage({
+          text: "Your demo booking has been recorded in the simulator. Calendar and email actions are simulated.",
+          sender: 'system'
+        });
+      }
+    } catch (e) {
+      addLog("Failed to generate PDF or complete booking external actions.");
     }
   };
 
@@ -358,7 +403,7 @@ export default function Simulator({ industry, scenarioId, onBack, onIndustryChan
             })}
 
             {/* Interactive Custom Actions (e.g. Booking steps) */}
-            {bookingState.step !== 'none' && (
+            {conversationState !== 'idle' && (
               <div className="mt-8 p-5 bg-gray-900 rounded-2xl text-white shadow-xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
                 <h4 className="font-bold mb-4 flex items-center gap-2">
@@ -366,33 +411,38 @@ export default function Simulator({ industry, scenarioId, onBack, onIndustryChan
                   Integration Required
                 </h4>
                 
-                {bookingState.step === 'date' && (
+                {conversationState === 'selecting_date' && (
                   <div className="space-y-3">
                     <p className="text-xs text-gray-400">Select Date:</p>
                     <input type="date" className="w-full bg-gray-800 border-gray-700 rounded-lg text-sm p-2 text-white" 
-                      onChange={(e) => setBookingState({ ...bookingState, date: e.target.value, step: 'time' })} />
+                      onChange={(e) => { setBookingData((prev: BookingData) => ({ ...prev, date: e.target.value })); setConversationState('selecting_time'); }} />
                   </div>
                 )}
-                {bookingState.step === 'time' && (
+                {conversationState === 'selecting_time' && (
                   <div className="space-y-3">
                     <p className="text-xs text-gray-400">Select Time:</p>
                     <select className="w-full bg-gray-800 border-gray-700 rounded-lg text-sm p-2 text-white" 
-                      onChange={(e) => setBookingState({ ...bookingState, time: e.target.value, step: 'name' })}>
+                      onChange={(e) => { setBookingData((prev: BookingData) => ({ ...prev, time: e.target.value })); setConversationState('collecting_lead'); }}>
                       <option value="">Choose...</option>
                       <option>10:00 AM</option>
                       <option>02:00 PM</option>
                     </select>
                   </div>
                 )}
-                {bookingState.step === 'name' && (
+                {conversationState === 'collecting_lead' && (
                   <div className="space-y-3">
                     <p className="text-xs text-gray-400">Full Name:</p>
                     <input type="text" className="w-full bg-gray-800 border-gray-700 rounded-lg text-sm p-2 text-white" 
-                      onKeyDown={(e) => e.key === 'Enter' && setBookingState({ ...bookingState, name: e.currentTarget.value, step: 'done' })} />
+                      onKeyDown={(e) => { 
+                        if (e.key === 'Enter') {
+                          setBookingData((prev: BookingData) => ({ ...prev, name: e.currentTarget.value }));
+                          setConversationState('booking_pending');
+                        }
+                      }} />
                   </div>
                 )}
                 
-                {bookingState.step === 'done' && (
+                {conversationState === 'booking_pending' && (
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 text-emerald-400 text-sm font-bold bg-emerald-400/10 p-2 rounded-lg">
                       <CheckCircle2 className="w-4 h-4" /> Data Captured
@@ -438,3 +488,4 @@ export default function Simulator({ industry, scenarioId, onBack, onIndustryChan
     </div>
   );
 }
+
